@@ -6,7 +6,7 @@ require "liquid"
 class Maliq::Converter
   def initialize(text)
     @text = text
-    @meta = { language:'ja' }
+    @meta = { language:'ja', liquid:'plugins' }
     @engine = ->text{ ::RDiscount.new(text).to_html }
     read_frontmatter
   end
@@ -23,8 +23,9 @@ class Maliq::Converter
 
   private
   def convert_liquid_tags(text)
-    if path = @meta[:liquid]
-      Dir["#{File.expand_path(path)}/*.rb"].each { |lib| require lib }
+    if dir = @meta[:liquid]
+      plugins = File.join(Dir.pwd, dir, '*.rb')
+      Dir[plugins].each { |lib| require lib }
     end
     Liquid::Template.parse(text).render
   end
