@@ -1,5 +1,5 @@
 require "maliq/version"
 
 module Maliq
-  # Your code goes here...
+  %w(system_extensions converter).each { |lib| require_relative 'maliq/' + lib }
 end
