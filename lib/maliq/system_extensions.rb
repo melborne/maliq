@@ -22,14 +22,3 @@ class Array
 end
 
 Enumerable.send(:alias_method, :with, :each_with_object)
-
-# class Object
-#   def to_nil
-#     self if respond_to?(:empty?) && !empty?
-#   end
-# 
-#   def to_nil=(obj)
-#     replace(obj) if respond_to?(:replace)
-#   end
-# end
-# 
