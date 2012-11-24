@@ -4,8 +4,10 @@ require "yaml"
 require "liquid"
 
 class Maliq::Converter
+  attr_reader :meta
   def initialize(text)
     @text = text
+    @converted = nil
     @meta = { language:'ja', liquid:'plugins' }
     @engine = ->text{ ::RDiscount.new(text).to_html }
     read_frontmatter
@@ -13,11 +15,17 @@ class Maliq::Converter
   
   def run
     text = convert_liquid_tags(@text)
-    apply_template { @engine.call(text) }
+    @converted = apply_template(:epub) { @engine.call(text) }
   end
   alias :to_xhtml :run
+  alias :convert :run
 
-  def meta(meta)
+  def save(path="out.xhtml")
+    @converted ||= run
+    File.write(path, @converted)
+  end
+
+  def set_meta(meta)
     @meta.update(meta)
   end
 
@@ -30,21 +38,28 @@ class Maliq::Converter
     Liquid::Template.parse(text).render
   end
 
-  def apply_template
+  def apply_template(template, &blk)
+    case template
+    when :epub then epub_template(&blk)
+    else raise "Only :epub template available so far."
+    end
+
+  end
+
+  def epub_template(&blk)
     header, footer = ~<<-HEAD, ~<<-FOOT
       <?xml version="1.0" encoding="UTF-8"?>
-      <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="#{@meta[:language]}">
+      <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="#{meta[:language]}">
         <head>
-          <title>#{@meta[:title]}</title>
-          #{@meta[:css]}
+          <title>#{meta[:title]}</title>
+          #{meta[:css]}
         </head>
         <body>
     HEAD
         </body>
       </html>
     FOOT
-
-    [header, yield, footer].join
+    [header, blk.call, footer].join
   end
   
   def read_frontmatter

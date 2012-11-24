@@ -70,4 +70,20 @@ describe Maliq::Converter do
         EOS
     end
   end
+
+  describe "#save" do
+    it "save to a file" do
+      Dir.mktmpdir do |dir|
+        tmpfile = "#{dir}/tmp"
+        converter.new("#header1\nline1\n\nline2").save(tmpfile)
+        File.read(tmpfile).should eql [@header.call, ~<<-EOS, @footer].join
+        <h1>header1</h1>
+
+        <p>line1</p>
+
+        <p>line2</p>
+        EOS
+      end
+    end      
+  end
 end
