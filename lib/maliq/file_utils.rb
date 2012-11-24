@@ -21,6 +21,8 @@ module Maliq
       contents = ([filename] + content.split(marker)).to_hash
       contents.with({}) { |(fname, text), h| h[fname] = yfm + text }
     end    
+
+    module_function :split, :retrieveYFM
   end
 end
 

@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+require "maliq"
+
+# include Maliq::FileUtils
+
+filenames = ARGV
+
+dir = Dir.pwd
+
+filenames.each do |fname|
+  chapters = Maliq::FileUtils.split(fname)
+  chapters.each do |title, text|
+    dest = File.join(dir, title.basename_with(:xhtml))
+    conv = Maliq::Converter.new(text)
+    conv.save(dest)
+    puts "'#{dest}' created."
+  end
+end
