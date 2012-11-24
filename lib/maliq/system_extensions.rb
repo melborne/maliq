@@ -4,21 +4,9 @@ class String
     gsub(/^ {#{margin}}/, '')
   end
 
-  # def expand_dirname
-  #   File.expand_path(File.dirname self)
-  # end
-  # 
-  # def basename(ext='.*')
-  #   File.basename(self, ext)
-  # end
-  # 
-  # def basename_with(ext)
-  #   "#{self.expand_dirname}/#{self.basename}.#{ext}"
-  # end
-  # 
-  # def extname
-  #   File.extname(self)[/\w+$/].tap { |ext| break ext.intern if ext }
-  # end
+  def basename_with(ext)
+    "#{File.basename(self, '.*')}.#{ext}"
+  end
 end
 
 class Hash
