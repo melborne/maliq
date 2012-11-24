@@ -23,7 +23,7 @@ end
 
 class Hash
   def to_symkey
-    Hash[ self.map { |k, v| [k.intern, v] } ]
+    with({}) { |(k, v), h| h[k.intern] = v  }
   end
 end
 
