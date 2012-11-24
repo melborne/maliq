@@ -6,11 +6,13 @@ require "liquid"
 class Maliq::Converter
   attr_reader :meta
   def initialize(text, opts={})
+    @engine = ->text{ ::RDiscount.new(text).to_html }
     @text = text
     @converted = nil
-    @meta = { language:'ja', liquid:'plugins' }.merge(opts)
-    @engine = ->text{ ::RDiscount.new(text).to_html }
-    read_frontmatter
+    @meta = { language:'ja', liquid:'plugins' }
+    yfm, @text = Maliq.retrieveYFM(@text)
+    set_meta(YAML.load(yfm).to_symkey) unless yfm.empty?
+    set_meta(opts)
   end
   
   def run(template=:epub)
@@ -73,13 +75,6 @@ class Maliq::Converter
     when String then template[css]
     when Array then css.map { |f| template[f] }.join("\n")
     else
-    end
-  end
-  
-  def read_frontmatter
-    @text.match(/^(---\s*\n.*?\n?)^(---\s*$\n?)/m) do |md|
-      set_meta( YAML.load(md.to_s).to_symkey )
-      @text = md.post_match
     end
   end
 end
