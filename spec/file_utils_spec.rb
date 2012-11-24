@@ -1,27 +1,8 @@
 require_relative 'spec_helper'
 
-describe Maliq::FileHandler do
-  let(:fhandler) { Maliq::FileHandler }
-  describe ".new" do
-    before(:each) do
-      Dir.mktmpdir do |dir|
-        tmpf = "#{dir}/tmp"
-        @content = ~<<-EOF
-          #hello
-          hello
-          #Goodbye
-          goodbye
-          #Yo
-          yoyoyo
-          EOF
-        File.write(tmpf, @content)
-        @fh = fhandler.new(tmpf)
-      end
-    end
+include Maliq::FileUtils
 
-    it { @fh.read.should eql @content }
-  end
-
+describe Maliq::FileUtils do
   describe ".split" do
     context "without chapters and front matter" do
       before do
@@ -36,11 +17,11 @@ describe Maliq::FileHandler do
             yoyoyo
             EOF
           File.write(tmpf, @content)
-          @fh = fhandler.new(tmpf)
+          @f = split(tmpf)
         end
       end
 
-      it { @fh.split.should == {'tmp' => @content} }
+      it { @f.should == {'tmp' => @content} }
     end
 
     context "with chapters" do
@@ -68,11 +49,11 @@ describe Maliq::FileHandler do
             yoyoyo
             F3
           File.write(tmpf, @content)
-          @fh = fhandler.new(tmpf)
+          @f = split(tmpf)
         end
       end
 
-      it { @fh.split.should == {'tmp' => @ch1, 'chapter02' => @ch2, 'chapter03' => @ch3} }
+      it { @f.should == {'tmp' => @ch1, 'chapter02' => @ch2, 'chapter03' => @ch3} }
     end
 
     context "with chapters and front matter" do
@@ -112,11 +93,11 @@ describe Maliq::FileHandler do
             yoyoyo
             F3
           File.write(tmpf, @content)
-          @fh = fhandler.new(tmpf)
+          @f = split(tmpf)
         end
       end
 
-      it { @fh.split.should == {'tmp' => @ch1, 'chapter02' => @ch2, 'chapter03' => @ch3} }
+      it { @f.should == {'tmp' => @ch1, 'chapter02' => @ch2, 'chapter03' => @ch3} }
     end
   end
 end

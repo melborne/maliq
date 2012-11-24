@@ -4,14 +4,14 @@ require "yaml"
 require "liquid"
 
 class Maliq::Converter
+  include Maliq::FileUtils
   attr_reader :meta
   def initialize(text, opts={})
     @engine = ->text{ ::RDiscount.new(text).to_html }
     @text = text
     @converted = nil
     @meta = { language:'ja', liquid:'plugins' }
-    yfm, @text = Maliq.retrieveYFM(@text)
-    set_meta(YAML.load(yfm).to_symkey) unless yfm.empty?
+    retrieve_meta_from_yfm
     set_meta(opts)
   end
   
@@ -32,6 +32,11 @@ class Maliq::Converter
   end
 
   private
+  def retrieve_meta_from_yfm
+    yfm, @text = retrieveYFM(@text)
+    set_meta(YAML.load(yfm).to_symkey) unless yfm.empty?
+  end
+
   def convert_liquid_tags(text)
     if dir = meta[:liquid]
       plugins = File.join(Dir.pwd, dir, '*.rb')
