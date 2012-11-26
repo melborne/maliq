@@ -1,6 +1,6 @@
 module Maliq
   module FileUtils
-    SPLIT_MARKER = /^<<<---\s*([[:word:]]+?)\s*--->>>\n/
+    SPLIT_MARKER = /^<<<---\s*([\w\.]+?)\s*--->>>\n/
 
     # Retrieve Yaml Front Matter from text.
     # Returns [yfm, text]
