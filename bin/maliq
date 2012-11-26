@@ -8,8 +8,7 @@ class OptionParser
 
     filenames = ARGV.select { |f| f.match /\.(md|markdown)$/ }
     if filenames.empty?
-      $stderr.puts "Must pass one or more markdown filenames to build xhtml output."
-      exit 1
+      abort "Must pass one or more markdown filenames to build xhtml output."
     end
     csses = Dir['{*.css,*/*.css}']
 

@@ -48,6 +48,9 @@ class OptionParser
 
     # Returns a Hash of metadata.
     def read_metadata(path)
+      unless path
+        abort "Must pass one or more markdown filenames which have a Yaml Front Matter."
+      end
       yml, _ = Maliq::FileUtils.retrieveYML(File.read path)
       return nil if yml.empty?
       YAML.load(yml).to_symkey
