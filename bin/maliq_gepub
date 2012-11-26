@@ -1,0 +1,89 @@
+#!/usr/bin/env ruby
+require "maliq"
+require "trollop"
+require "gepub"
+
+class OptionParser
+  class << self
+    def parse!
+      opts = build_opts
+
+      files = read_files
+      markdowns = files.values_atx(:md, :markdown)
+      metadata = read_metadata(markdowns.first)
+      generate(metadata, files, opts)
+    end
+
+    def build_opts
+      Trollop::options do
+        version "Maliq #{Maliq::VERSION} (c) 2012 kyoendo"
+        banner ~<<-EOS
+          Maliq is a markdown, liquid converter for EPUB's xhtml.
+
+          'maliq_gepub' command is a tool for generating a EPUB package
+          using Gepub gem.
+
+          Usage:
+
+              1. Install gepub gem(gem install gepub)
+
+              2. Set meta data required for Epub generation in Yaml Front
+                 Matter(YFM) of your markdown file.
+
+              3. Create xhtml files with 'maliq' command(see maliq -h). 
+
+              4. fire up 'maliq_gepub' on the direcroty.
+
+          where [options] are:
+          EOS
+
+          opt :output, "Output Epub filename", :default => 'out.epub'
+      end
+    end
+
+    # Returns a Hash, in which filenames are grouped by extname.
+    def read_files
+      Dir['{*, */*}'].group_by { |f| File.extname(f) || :_dir }
+    end
+
+    # Returns a Hash of metadata.
+    def read_metadata(path)
+      yml, _ = Maliq::FileUtils.retrieveYML(File.read path)
+      return nil if yml.empty?
+      YAML.load(yml).to_symkey
+    end
+
+    def generate(metadata, files, opts)
+      meta_nodes = GEPUB::Metadata::CONTENT_NODE_LIST
+      metadata.select! { |k, _| meta_nodes.include? k }
+
+      GEPUB::Builder.new do
+        metadata.each { |k, v| send k, *Array(v) }
+        csses  = files.values_atx(:css)
+        images = files.values_atx(:png, :jpg, :jpeg, :gif, :bmp, :tiff)
+        xhtmls = files.values_atx(:xhtml, :html).map { |f| xhtml_with_heading f }
+
+        resources(:workdir => '.') {
+          csses.each { |f| file f }
+          images.each do |f|
+            f.match(/^cover/) ? cover_image(f) : file(f)
+          end
+          ordered {
+            xhtmls.each do |fname, head|
+              file fname
+              heading head
+            end
+          }
+        }
+      end.generate_epub(opts[:output])
+    end
+
+    def xhtml_with_heading(xhtml)
+      heading = File.basename(xhtml, '.*').capitalize
+      File.read(xhtml).match(/<h(?:1|2|3)>(.*?)<\/h(?:1|2|3)>/) { heading = $1 }
+      [xhtml, heading]
+    end
+  end
+end
+
+OptionParser.parse!
