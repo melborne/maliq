@@ -19,6 +19,12 @@ class Array
   def to_hash
     Hash[ *self ]
   end
+
+  def values_atx(*keys)
+    res = values_at(*keys)
+    res.flatten if res.respond_to?(:flatten)
+    res.compact
+  end
 end
 
 Enumerable.send(:alias_method, :with, :each_with_object)
