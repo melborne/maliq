@@ -13,17 +13,17 @@ class Hash
   def to_symkey
     with({}) { |(k, v), h| h[k.intern] = v  }
   end
-end
-
-class Array
-  def to_hash
-    Hash[ *self ]
-  end
 
   def values_atx(*keys)
     res = values_at(*keys)
     res.flatten if res.respond_to?(:flatten)
     res.compact
+  end
+end
+
+class Array
+  def to_hash
+    Hash[ *self ]
   end
 end
 
