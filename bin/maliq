@@ -1,18 +1,64 @@
 #!/usr/bin/env ruby
 require "maliq"
+require "trollop"
 
-# include Maliq::FileUtils
+class OptionParser
+  def self.parse!
+    opts = build_opts
 
-filenames = ARGV
+    filenames = ARGV.select { |f| f.match /\.(md|markdown)$/ }
+    if filenames.empty?
+      $stderr.puts "Must pass one or more markdown filenames to build xhtml output."
+      exit 1
+    end
+    csses = Dir['{*.css,*/*.css}']
 
-dir = Dir.pwd
+    filenames.each do |fname|
+      chapters = Maliq::FileUtils.split(fname)
+      chapters.each do |title, text|
+        dest = title.basename_with(:xhtml)
+        conv = Maliq::Converter.new(text, css:csses, liquid:opts[:liquid])
+        conv.save(dest)
+        puts "'#{dest}' created."
+      end
+    end
+  end
 
-filenames.each do |fname|
-  chapters = Maliq::FileUtils.split(fname)
-  chapters.each do |title, text|
-    dest = File.join(dir, title.basename_with(:xhtml))
-    conv = Maliq::Converter.new(text)
-    conv.save(dest)
-    puts "'#{dest}' created."
+  def self.build_opts
+    Trollop::options do
+      version "Maliq #{Maliq::VERSION} (c) 2012 kyoendo"
+      banner ~<<-EOS
+        Maliq is a markdown, liquid converter for EPUB's xhtml.
+
+        Prerequisite:
+
+            1. Set title and language in Yaml Front Matter(YFM) of
+               your markdown file, which will be used in the header
+               of generating xhtml.
+
+            2. To parse liquid tags in your markdown, place the plugins
+               into the sub directory named 'plugins'.
+
+            3. Place css files into the target directory or its 
+               sub-directory if any.
+
+            4. To split your markdown into several xhtmls for building
+               chapters, set special markers "<<<--- <filename> --->>>"
+               into the right places. ex. <<<--- chapter02 --->>>
+
+
+        Usage:
+
+              maliq [options] <filenames>
+
+              ex. maliq chapter01.md
+
+        where [options] are:
+        EOS
+
+      opt :liquid, "Liquid plugin path", :default => 'plugins'
+    end
   end
 end
+
+OptionParser.parse!
