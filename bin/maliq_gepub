@@ -1,7 +1,25 @@
 #!/usr/bin/env ruby
+# encoding: UTF-8
 require "maliq"
 require "trollop"
 require "gepub"
+
+# a patch for Nokogiri::XML::Node#namespaces
+# Hash[ alist ]  => Hash[ *alist.flatten ]
+class Nokogiri::XML::Node
+  def namespaces
+    Hash[*namespace_scopes.map { |nd|
+      key = ['xmlns', nd.prefix].compact.join(':')
+      if RUBY_VERSION >= '1.9' && document.encoding
+        begin
+          key.force_encoding document.encoding
+        rescue ArgumentError
+        end
+      end
+      [key, nd.href]
+    }.flatten]
+  end
+end
 
 class OptionParser
   class << self
@@ -43,28 +61,28 @@ class OptionParser
 
     # Returns a Hash, in which filenames are grouped by extname.
     def read_files
-      Dir['{*, */*}'].group_by { |f| File.extname(f) || :_dir }.to_symkey
+      Dir['*', '*/*'].group_by { |f| f.ext || :_dir }.to_symkey
     end
 
     # Returns a Hash of metadata.
     def read_metadata(path)
       unless path
-        abort "Must pass one or more markdown filenames which have a Yaml Front Matter."
+        abort "Must exist a markdown filename which have Yaml Front Matter."
       end
-      yml, _ = Maliq::FileUtils.retrieveYML(File.read path)
+      yml, _ = Maliq::FileUtils.retrieveYFM(File.read path)
       return nil if yml.empty?
       YAML.load(yml).to_symkey
     end
 
     def generate(metadata, files, opts)
-      meta_nodes = GEPUB::Metadata::CONTENT_NODE_LIST
-      metadata.select! { |k, _| meta_nodes.include? k }
+      meta_nodes = GEPUB::Metadata::CONTENT_NODE_LIST + ["unique_identifier"]
+      metadata.select! { |k, _| meta_nodes.include? k.to_s }
+      csses  = files.values_atx(:css)
+      images = files.values_atx(:png, :jpg, :jpeg, :gif, :bmp, :tiff)
+      xhtmls = files.values_atx(:xhtml, :html).map { |f| xhtml_with_heading f }
 
       GEPUB::Builder.new do
         metadata.each { |k, v| send k, *Array(v) }
-        csses  = files.values_atx(:css)
-        images = files.values_atx(:png, :jpg, :jpeg, :gif, :bmp, :tiff)
-        xhtmls = files.values_atx(:xhtml, :html).map { |f| xhtml_with_heading f }
 
         resources(:workdir => '.') {
           csses.each { |f| file f }
