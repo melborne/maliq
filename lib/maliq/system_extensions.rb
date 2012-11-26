@@ -16,7 +16,7 @@ class Hash
 
   def values_atx(*keys)
     res = values_at(*keys)
-    res.flatten if res.respond_to?(:flatten)
+    res = res.flatten if res.respond_to?(:flatten)
     res.compact
   end
 end

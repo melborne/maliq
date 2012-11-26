@@ -43,7 +43,7 @@ class OptionParser
 
     # Returns a Hash, in which filenames are grouped by extname.
     def read_files
-      Dir['{*, */*}'].group_by { |f| File.extname(f) || :_dir }
+      Dir['{*, */*}'].group_by { |f| File.extname(f) || :_dir }.to_symkey
     end
 
     # Returns a Hash of metadata.
