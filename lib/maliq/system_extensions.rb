@@ -7,6 +7,10 @@ class String
   def basename_with(ext)
     "#{File.basename(self, '.*')}.#{ext}"
   end
+
+  def ext
+    File.extname(self)[/\w+$/]
+  end
 end
 
 class Hash
