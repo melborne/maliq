@@ -53,6 +53,11 @@ The front matter must be the first thing in the file and takes the form of:
 
 Between the triple-dashed lines, you can set predefined variables.
 
+## Liquid plugins
+There are many liquid plugins on the Net, but you might need to modify them to be work for Epub generation. Some my modified plugins are there:
+
+> [Liquid filters for Mdpub gem to generate xhtml — Gist](https://gist.github.com/4134497 'Liquid filters for Mdpub gem to generate xhtml — Gist')
+
 
 ## Code Usage
 
@@ -94,6 +99,12 @@ This produce followings, with calc.rb plugin at a folder named 'filters.
 
     <p>2 + 3 = 5</p>
 
+
+## Thank you
+
+Thank you to [Satoshi KOJIMA](https://github.com/skoji) for creating Gepub which is a great EPUB generator.
+
+Thank you to [rtomayko (Ryan Tomayko)](https://github.com/rtomayko) for creating RDiscount which is a great markdown parser.
 
 ## Contributing
 
