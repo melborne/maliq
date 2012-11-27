@@ -26,15 +26,15 @@ Follow the steps below:
 
 2. Write meta data required for EPUB in the head of the file with Yaml Front Matter(YFM) form(see below).
 
-3. You can obtain separated xhtml files each of which represents a chapter from a markdown file if needed. This achive by placing a special marker into target line of your content. The Default marker is '<<<--- <filename> --->>>'. (ex. <<<--- chapter02 --->>>)
+3. You can obtain separated xhtml files each of which represents a chapter from a markdown file if needed. This achive by placing a special marker into target line of your content. The Default marker is `<<<--- <filename> --->>>`. (ex. `<<<--- chapter02 --->>>`)
 
 4. Place css and image files into the directory or its sub directory if any.
 
 5. Place liquid plugins into the sub directory named 'plugins'(default) when your content include liquid tags.
 
-6. Fire up 'maliq' command followed by the filename(s) on the current directory. (ex. maliq chapter01.md) This create xhtml file(s).
+6. Fire up `maliq` command followed by the filename(s) on the current directory. (ex. maliq chapter01.md) This create xhtml file(s).
 
-7. Install Gepub gem (gem install gepub), then fire up 'maliq_gepub' command to generate a EPUB package.
+7. Install Gepub gem (gem install gepub), then fire up `maliq_gepub` command to generate a EPUB package.
 
 ## Yaml Front Matter Sample
 The front matter must be the first thing in the file and takes the form of:
@@ -56,7 +56,7 @@ Between the triple-dashed lines, you can set predefined variables.
 ## Liquid plugins
 There are many liquid plugins on the Net, but you might need to modify them to be work for Epub generation. Some my modified plugins are there:
 
-> [Liquid filters for Mdpub gem to generate xhtml — Gist](https://gist.github.com/4134497 'Liquid filters for Mdpub gem to generate xhtml — Gist')
+> [Liquid filters for Maliq gem to generate xhtml — Gist](https://gist.github.com/4134497 'Liquid filters for Maliq gem to generate xhtml — Gist')
 
 
 ## Code Usage
@@ -93,7 +93,7 @@ To make liquid tags parsed with plugins, specify a plugin folder at the front ma
     {% calc 2 + 3 %}
     EOS
 
-This produce followings, with calc.rb plugin at a folder named 'filters.
+This produce followings, with calc.rb plugin at a folder named 'filters'.
 
     <h1>header1</h1>
 
