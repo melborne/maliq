@@ -9,7 +9,7 @@ Gem::Specification.new do |gem|
   gem.authors       = ["kyoendo"]
   gem.email         = ["postagie@gmail.com"]
   gem.description   = %q{Maliq is a markdown, liquid converter for EPUB's xhtml.}
-  gem.summary       = %q{Maliq is a markdown, liquid converter for EPUB's xhtml.}
+  gem.summary       = %q{Maliq is a markdown, liquid converter for EPUB's xhtml. It comes with two command 'maliq' and 'maliq\_gepub'. 'maliq' is a markdown-xhtml converter and 'maliq\_gepub' is a wrapper of gepub gem which is a EPUB generator.}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($/)
