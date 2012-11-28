@@ -10,7 +10,7 @@ class OptionParser
     if filenames.empty?
       abort "Must pass one or more markdown filenames to build xhtml output."
     end
-    csses = Dir['{*.css,*/*.css}']
+    csses = Dir['*.css', '*/*.css']
 
     filenames.each do |fname|
       chapters = Maliq::FileUtils.split(fname)
