@@ -79,7 +79,9 @@ class OptionParser
       metadata.select! { |k, _| meta_nodes.include? k.to_s }
       csses  = files.values_atx(:css)
       images = files.values_atx(:png, :jpg, :jpeg, :gif, :bmp, :tiff)
-      xhtmls = files.values_atx(:xhtml, :html).map { |f| xhtml_with_heading f }
+      xhtmls = files.values_atx(:xhtml, :html)
+      cover_xhtml = xhtmls.delete('cover.xhtml')
+      xhtmls.map! { |f| xhtml_with_heading f }
 
       GEPUB::Builder.new do
         metadata.each { |k, v| send k, *Array(v) }
@@ -87,9 +89,10 @@ class OptionParser
         resources(:workdir => '.') {
           csses.each { |f| file f }
           images.each do |f|
-            f.match(/^cover/) ? cover_image(f) : file(f)
+            File.basename(f).match(/^cover/) ? cover_image(f) : file(f)
           end
           ordered {
+            file cover_xhtml if cover_xhtml
             xhtmls.each do |fname, head|
               file fname
               heading head
