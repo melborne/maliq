@@ -3,6 +3,7 @@
 require "maliq"
 require "trollop"
 require "gepub"
+require "stringio"
 
 # a patch for Nokogiri::XML::Node#namespaces
 # Hash[ alist ]  => Hash[ *alist.flatten ]
@@ -79,8 +80,14 @@ class OptionParser
       metadata.select! { |k, _| meta_nodes.include? k.to_s }
       csses  = files.values_atx(:css)
       images = files.values_atx(:png, :jpg, :jpeg, :gif, :bmp, :tiff)
+      cover_images, images = images.partition { |f| File.basename(f).match /^cover/ }
       xhtmls = files.values_atx(:xhtml, :html)
       cover_xhtml = xhtmls.delete('cover.xhtml')
+
+      # Create cover page if page not provided for a cover image.
+      if (cover = cover_images.first) && !cover_xhtml
+        cover_xhtml = create_cover_page(cover)
+      end
       xhtmls.map! { |f| xhtml_with_heading f }
 
       GEPUB::Builder.new do
@@ -88,11 +95,10 @@ class OptionParser
 
         resources(:workdir => '.') {
           csses.each { |f| file f }
-          images.each do |f|
-            File.basename(f).match(/^cover/) ? cover_image(f) : file(f)
-          end
+          cover_image cover
+          images.each { |f| file(f) }
           ordered {
-            file cover_xhtml if cover_xhtml
+            file 'cover.xhtml' => cover_xhtml if cover_xhtml
             xhtmls.each do |fname, head|
               file fname
               heading head
@@ -100,6 +106,11 @@ class OptionParser
           }
         }
       end.generate_epub(opts[:output])
+    end
+
+    def create_cover_page(cover)
+      out = Maliq::Converter.new("![cover](#{cover})", title:'Cover').run
+      StringIO.new(out)
     end
 
     def xhtml_with_heading(xhtml)
