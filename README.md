@@ -102,9 +102,9 @@ This produce followings, with calc.rb plugin at a folder named 'filters'.
 
 ## Thank you
 
-Thank you to [Satoshi KOJIMA](https://github.com/skoji) for creating Gepub which is a great EPUB generator.
+Thank you to [Satoshi KOJIMA](https://github.com/skoji) for creating [Ggepub](https://github.com/skoji/gepub 'skoji/gepub') which is a great EPUB generator.
 
-Thank you to [rtomayko (Ryan Tomayko)](https://github.com/rtomayko) for creating RDiscount which is a great markdown parser.
+Thank you to [rtomayko (Ryan Tomayko)](https://github.com/rtomayko) for creating [Rdiscount](https://github.com/rtomayko/rdiscount 'rtomayko/rdiscount') which is a great markdown parser.
 
 ## Contributing
 
