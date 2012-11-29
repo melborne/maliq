@@ -57,6 +57,7 @@ class OptionParser
           EOS
 
           opt :output, "Output Epub filename", :default => 'out.epub'
+          opt :toc, "Add Table of Contents page", :default => true
       end
     end
 
@@ -80,7 +81,7 @@ class OptionParser
       metadata.select! { |k, _| meta_nodes.include? k.to_s }
       csses  = files.values_atx(:css)
       images = files.values_atx(:png, :jpg, :jpeg, :gif, :bmp, :tiff)
-      cover_images, images = images.partition { |f| File.basename(f).match /^cover/ }
+      cover_images, images = images.partition { |f| File.basename(f, '.*').match /^cover/ }
       xhtmls = files.values_atx(:xhtml, :html)
       cover_xhtml = xhtmls.delete('cover.xhtml')
 
@@ -88,7 +89,13 @@ class OptionParser
       if (cover = cover_images.first) && !cover_xhtml
         cover_xhtml = create_cover_page(cover)
       end
+
       xhtmls.map! { |f| xhtml_with_heading f }
+
+      # Create Table of Contents page.
+      if opts[:toc] && no_nav_page?(xhtmls)
+        nav_xhtml = create_nav_page(xhtmls, css:csses)
+      end
 
       GEPUB::Builder.new do
         metadata.each { |k, v| send k, *Array(v) }
@@ -98,7 +105,16 @@ class OptionParser
           cover_image cover
           images.each { |f| file(f) }
           ordered {
-            file 'cover.xhtml' => cover_xhtml if cover_xhtml
+            if cover_xhtml
+              file 'cover.xhtml' => cover_xhtml
+              heading 'Cover'
+            end
+
+            if nav_xhtml
+              file 'nav.xhtml' => nav_xhtml
+              heading 'Table of Contents'
+            end
+
             xhtmls.each do |fname, head|
               file fname
               heading head
@@ -110,6 +126,20 @@ class OptionParser
 
     def create_cover_page(cover)
       out = Maliq::Converter.new("![cover](#{cover})", title:'Cover').run
+      StringIO.new(out)
+    end
+
+    def no_nav_page?(xhtmls)
+      xhtmls.none? { |fname, _| File.basename(fname, '.*').match /(nav|toc)$/ }
+    end
+
+    def create_nav_page(xhtmls, opts={})
+      out = Maliq::Converter.new(~<<-EOS, opts).run
+      ## Table of Contents
+
+      #{xhtmls.map { |fname, text| "1. [#{text}](#{fname})"  }.join("\n")}
+
+      EOS
       StringIO.new(out)
     end
 
