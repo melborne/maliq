@@ -102,7 +102,7 @@ class OptionParser
 
         resources(:workdir => '.') {
           csses.each { |f| file f }
-          cover_image cover
+          cover_image cover if cover
           images.each { |f| file(f) }
           ordered {
             if cover_xhtml
