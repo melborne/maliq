@@ -71,7 +71,7 @@ This get:
     <!DOCTYPE html>
     <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="ja">
       <head>
-        <title>#{title}</title>
+        <title></title>
         
       </head>
       <body>
