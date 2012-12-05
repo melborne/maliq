@@ -36,7 +36,7 @@ module Maliq
     end
     private :create_filename
 
-    module_function :split, :retrieveYFM
+    module_function :split, :retrieveYFM, :create_filename
   end
 end
 
