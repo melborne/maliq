@@ -16,7 +16,8 @@ class OptionParser
       chapters = Maliq::FileUtils.split(fname)
       chapters.each do |title, text|
         dest = title.basename_with(:xhtml)
-        conv = Maliq::Converter.new(text, css:csses, liquid:opts[:liquid])
+        conv = Maliq::Converter.new(text, css:csses)
+        conv.set_meta(liquid:opts[:liquid]) if opts[:liquid]
         conv.save(dest)
         puts "'#{dest}' created."
       end
@@ -55,7 +56,7 @@ class OptionParser
         where [options] are:
         EOS
 
-      opt :liquid, "Liquid plugin path", :default => 'plugins'
+      opt :liquid, "Liquid plugin path", :type => :string
     end
   end
 end
