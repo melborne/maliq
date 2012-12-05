@@ -25,10 +25,4 @@ class Hash
   end
 end
 
-class Array
-  def to_hash
-    Hash[ *self ]
-  end
-end
-
 Enumerable.send(:alias_method, :with, :each_with_object)
