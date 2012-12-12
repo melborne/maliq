@@ -34,7 +34,6 @@ module Maliq
     def create_filename(prev_name)
       prev_name[/\d+$/] ? prev_name.next : prev_name + '02'
     end
-    private :create_filename
 
     module_function :split, :retrieveYFM, :create_filename
   end

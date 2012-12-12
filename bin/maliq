@@ -12,14 +12,18 @@ class OptionParser
     end
     csses = Dir['*.css', '*/*.css']
 
-    filenames.each do |fname|
+    lastname = nil
+    filenames.each_with_index do |fname, fno|
+      seq_name = Maliq::FileUtils.create_filename(lastname) if lastname && opts[:seq]
       chapters = Maliq::FileUtils.split(fname)
       chapters.each do |title, text|
+        title = seq_name.tap { |s| seq_name = seq_name.next } if !fno.zero? && opts[:seq]
         dest = title.basename_with(:xhtml)
         conv = Maliq::Converter.new(text, css:csses)
         conv.set_meta(liquid:opts[:liquid]) if opts[:liquid]
         conv.save(dest)
         puts "'#{dest}' created."
+        lastname = title
       end
     end
   end
@@ -57,6 +61,7 @@ class OptionParser
         EOS
 
       opt :liquid, "Liquid plugin path", :type => :string
+      opt :seq, "Build consecutive filenames", :default => false
     end
   end
 end
