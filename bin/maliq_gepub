@@ -134,10 +134,14 @@ class OptionParser
     end
 
     def create_nav_page(xhtmls, opts={})
-      out = Maliq::Converter.new(~<<-EOS, opts).run
+      out = Maliq::Converter.new(~<<-EOS, opts).run(:epub, 'xhtmls' => xhtmls)
       ## Table of Contents
 
-      #{xhtmls.map { |fname, text| "1. [#{text}](#{fname})"  }.join("\n")}
+      <ol id='toc'>
+        {% for ch in xhtmls %}
+          <li><a href='{{ ch[0] }}'>{{ ch[1] }}</a></li>
+        {% endfor %}
+      </ol>
 
       EOS
       StringIO.new(out)
