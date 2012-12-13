@@ -15,8 +15,8 @@ class Maliq::Converter
     set_meta(opts)
   end
   
-  def run(template=:epub)
-    text = convert_liquid_tags(@text)
+  def run(template=:epub, context={})
+    text = convert_liquid_tags(@text, context)
     @converted = apply_template(template) { @engine.call(text) }
   end
   alias :to_xhtml :run
@@ -37,12 +37,12 @@ class Maliq::Converter
     set_meta(YAML.load(yfm).to_symkey) unless yfm.empty?
   end
 
-  def convert_liquid_tags(text)
+  def convert_liquid_tags(text, context)
     if dir = meta[:liquid]
       plugins = File.join(Dir.pwd, dir, '*.rb')
       Dir[plugins].each { |lib| require lib }
     end
-    Liquid::Template.parse(text).render
+    Liquid::Template.parse(text).render(context)
   end
 
   def apply_template(template, &blk)
