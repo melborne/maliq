@@ -45,4 +45,4 @@ opts = OptionParser.parse!
 css = Dir['*.css', '*/*.css']
 opts.update(css: css)
 
-Maliq::Builder.new(ARGV, opts).run!
+Maliq::Create.new(ARGV, opts).run!
