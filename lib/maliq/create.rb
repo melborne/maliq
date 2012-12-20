@@ -1,3 +1,6 @@
+# Maliq::Create receive markdown filename(s)
+# and create xhtml file(s).
+
 class Maliq::Create
   def initialize(files, opts={})
     @opts = opts

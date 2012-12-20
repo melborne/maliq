@@ -44,7 +44,7 @@ describe Maliq::Create do
       end
     end
 
-    context "when pass one markdown file in which split marker exsist" do
+    context "when pass one markdown file in which split marker placed" do
       it "returns two xhtml files" do
         Dir.mktmpdir do |dir|
           mdfile = "#{dir}/chap1.md"
