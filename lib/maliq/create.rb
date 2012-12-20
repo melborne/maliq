@@ -1,12 +1,12 @@
-class Maliq::Builder
-  def initialize(files, opts)
+class Maliq::Create
+  def initialize(files, opts={})
     @opts = opts
     @csses = opts.delete(:css)
     @mdfiles = get_markdown_files(files)
   end
 
-  def get_markdown_files(argv)
-    argv.select { |f| f.match /\.(md|markdown)$/ }
+  def get_markdown_files(files)
+    files.select { |f| f.match /\.(md|markdown)$/ }
         .tap { |res|
           if res.empty?
             abort "Must pass one or more markdown filenames to build xhtml output."
@@ -18,6 +18,7 @@ class Maliq::Builder
   def run!
     lastname = nil
     @mdfiles.each_with_index do |fname, fno|
+      dirname = File.dirname(fname)
       if @opts[:seq] && lastname
         seq_name = Maliq::FileUtils.create_filename(lastname)
       end
@@ -33,7 +34,7 @@ class Maliq::Builder
         end
 
         dest = title.basename_with(:xhtml)
-        convert_and_save(text, dest)
+        convert_and_save(text, File.join(dirname, dest))
         lastname = title
       end
     end
@@ -44,6 +45,5 @@ class Maliq::Builder
     conv = Maliq::Converter.new(md, css:@csses)
     conv.set_meta(liquid:@opts[:liquid]) if @opts[:liquid]
     conv.save(dest)
-    puts "'#{dest}' created."
   end
 end
