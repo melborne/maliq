@@ -2,97 +2,97 @@
 require "maliq"
 require "trollop"
 
-class OptionParser
-  class << self
-    def parse!
-      opts = build_opts
-      opts.update(css: get_css_files)
+class Maliq::Builder
+  def initialize(files, opts)
+    @opts = opts
+    @csses = opts.delete(:css)
+    @mdfiles = get_markdown_files(files)
+  end
 
-      mdfiles = get_markdown_files(ARGV)
-      create_xhtml_files(mdfiles, opts)
-    end
-
-    def get_css_files
-      Dir['*.css', '*/*.css']
-    end
-
-    def get_markdown_files(argv)
-      argv.select { |f| f.match /\.(md|markdown)$/ }
-          .tap { |res|
-            if res.empty?
-              abort "Must pass one or more markdown filenames to build xhtml output."
-            end
-          }
-    end
-
-    def create_xhtml_files(mdfiles, opts)
-      lastname = nil
-      mdfiles.each_with_index do |fname, fno|
-        if opts[:seq] && lastname
-          seq_name = Maliq::FileUtils.create_filename(lastname)
-        end
-
-        # Split a file at split markers to several chapters,
-        # each of which has title a label.
-        chapters = Maliq::FileUtils.split(fname)
-
-        chapters.each do |title, text|
-          #this change filenames with sequential names.
-          if opts[:seq] && !fno.zero?
-            title = seq_name.tap { |s| seq_name = seq_name.next }
+  def get_markdown_files(argv)
+    argv.select { |f| f.match /\.(md|markdown)$/ }
+        .tap { |res|
+          if res.empty?
+            abort "Must pass one or more markdown filenames to build xhtml output."
           end
+        }
+  end
+  private :get_markdown_files
 
-          dest = title.basename_with(:xhtml)
-          convert_and_save(text, dest, opts)
-          lastname = title
+  def run!
+    lastname = nil
+    @mdfiles.each_with_index do |fname, fno|
+      if @opts[:seq] && lastname
+        seq_name = Maliq::FileUtils.create_filename(lastname)
+      end
+
+      # Split a file at split markers to several chapters,
+      # each of which has title a label.
+      chapters = Maliq::FileUtils.split(fname)
+
+      chapters.each do |title, text|
+        #this change filenames with sequential names.
+        if @opts[:seq] && !fno.zero?
+          title = seq_name.tap { |s| seq_name = seq_name.next }
         end
+
+        dest = title.basename_with(:xhtml)
+        convert_and_save(text, dest)
+        lastname = title
       end
     end
+  end
 
-    def convert_and_save(md, dest, opts)
-      conv = Maliq::Converter.new(md, css:opts[:css])
-      conv.set_meta(liquid:opts[:liquid]) if opts[:liquid]
-      conv.save(dest)
-      puts "'#{dest}' created."
-    end
+  private
+  def convert_and_save(md, dest)
+    conv = Maliq::Converter.new(md, css:@csses)
+    conv.set_meta(liquid:@opts[:liquid]) if @opts[:liquid]
+    conv.save(dest)
+    puts "'#{dest}' created."
+  end
+end
 
-    def build_opts
-      Trollop::options do
-        version "Maliq #{Maliq::VERSION} (c) 2012 kyoendo"
-        banner ~<<-EOS
-          Maliq is a markdown, liquid converter for EPUB's xhtml.
+class OptionParser
+  def self.parse!
+    Trollop::options do
+      version "Maliq #{Maliq::VERSION} (c) 2012 kyoendo"
+      banner ~<<-EOS
+        Maliq is a markdown, liquid converter for EPUB's xhtml.
 
-          Prerequisite:
+        Prerequisite:
 
-              1. Set title and language in Yaml Front Matter(YFM) of
-                 your markdown file, which will be used in the header
-                 of generating xhtml.
+            1. Set title and language in Yaml Front Matter(YFM) of
+               your markdown file, which will be used in the header
+               of generating xhtml.
 
-              2. To parse liquid tags in your markdown, place the plugins
-                 into the sub directory named 'plugins'.
+            2. To parse liquid tags in your markdown, place the plugins
+               into the sub directory named 'plugins'.
 
-              3. Place css files into the target directory or its 
-                 sub-directory if any.
+            3. Place css files into the target directory or its 
+               sub-directory if any.
 
-              4. To split your markdown into several xhtmls for building
-                 chapters, set special markers "<<<--- <filename> --->>>"
-                 into the right places. ex. <<<--- chapter02 --->>>
+            4. To split your markdown into several xhtmls for building
+               chapters, set special markers "<<<--- <filename> --->>>"
+               into the right places. ex. <<<--- chapter02 --->>>
 
 
-          Usage:
+        Usage:
 
-                maliq [options] <filenames>
+              maliq [options] <filenames>
 
-                ex. maliq chapter01.md
+              ex. maliq chapter01.md
 
-          where [options] are:
-          EOS
+        where [options] are:
+        EOS
 
-        opt :liquid, "Liquid plugin path", :type => :string
-        opt :seq, "Build consecutive filenames", :default => false
-      end
+      opt :liquid, "Liquid plugin path", :type => :string
+      opt :seq, "Build consecutive filenames", :default => false
     end
   end
 end
 
-OptionParser.parse!
+opts = OptionParser.parse!
+css = Dir['*.css', '*/*.css']
+opts.update(css: css)
+
+Maliq::Builder.new(ARGV, opts).run!
