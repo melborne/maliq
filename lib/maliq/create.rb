@@ -60,7 +60,7 @@ class Maliq::Create
       [fname.basename_with(:xhtml), header]
     end
 
-    toc = @nav.is_a?(String) || "##Table of Contents"
+    toc = @nav.is_a?(String) ? @nav : "##Table of Contents"
 
     body = Maliq::Converter.new(~<<-EOS, @opts).run(:epub, 'list' => nav_list)
     #{toc}
