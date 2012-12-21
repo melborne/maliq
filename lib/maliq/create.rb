@@ -3,7 +3,7 @@
 class Maliq::Create
   def initialize(files, opts={})
     @opts = opts
-    @nav = opts.delete(:nav) || opts.delete(:toc)
+    @nav = opts.delete(:toc) || opts.delete(:nav)
     @mdfiles = get_markdown_files(files)
   end
 
