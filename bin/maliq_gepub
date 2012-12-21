@@ -90,12 +90,11 @@ class OptionParser
         cover_xhtml = create_cover_page(cover)
       end
 
-      xhtmls.map! { |f| xhtml_with_heading f }
+      navfile, xhtmls = pick_nav_file(xhtmls)
 
-      # Create Table of Contents page.
-      if opts[:toc] && no_nav_page?(xhtmls)
-        nav_xhtml = create_nav_page(xhtmls, css:csses)
-      end
+      heading_files = get_heading_files(navfile)
+
+      xhtmls.map! { |f| xhtml_with_heading f }
 
       GEPUB::Builder.new do
         metadata.each { |k, v| send k, *Array(v) }
@@ -110,14 +109,11 @@ class OptionParser
               heading 'Cover'
             end
 
-            if nav_xhtml
-              file 'nav.xhtml' => nav_xhtml
-              heading 'Table of Contents'
-            end
+            nav navfile if navfile
 
             xhtmls.each do |fname, head|
               file fname
-              heading head
+              heading head if !navfile || heading_files.include?(fname)
             end
           }
         }
@@ -129,22 +125,14 @@ class OptionParser
       StringIO.new(out)
     end
 
-    def no_nav_page?(xhtmls)
-      xhtmls.none? { |fname, _| File.basename(fname, '.*').match /(nav|toc)$/ }
+    def pick_nav_file(xhtmls)
+      navs, xhtmls = xhtmls.partition { |fname| fname.match /^(nav|toc)\.xhtml$/ }
+      nav = navs.empty? ? nil : navs.first
+      return nav, xhtmls
     end
 
-    def create_nav_page(xhtmls, opts={})
-      out = Maliq::Converter.new(~<<-EOS, opts).run(:epub, 'xhtmls' => xhtmls)
-      ## Table of Contents
-
-      <ol id='toc'>
-        {% for ch in xhtmls %}
-          <li><a href='{{ ch[0] }}'>{{ ch[1] }}</a></li>
-        {% endfor %}
-      </ol>
-
-      EOS
-      StringIO.new(out)
+    def get_heading_files(navfile)
+      File.read(navfile).scan(/\w+\.xhtml(?=.*?<\/li>)/) if navfile
     end
 
     def xhtml_with_heading(xhtml)
