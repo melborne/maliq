@@ -37,6 +37,8 @@ class OptionParser
 
       opt :liquid, "Liquid plugin path", :type => :string
       opt :seq, "Build consecutive filenames", :default => false
+      opt :nav, "Create nav.xhtml(TOC)"
+      opt :toc, "Set title for TOC", :default => nil
     end
   end
 end
