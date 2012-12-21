@@ -1,7 +1,6 @@
 require_relative 'spec_helper'
 
 describe Maliq::Create do
-  let(:create) { Maliq::Create }
   before(:each) do
     @header, @footer = ->lang='ja',title=nil{ ~<<-HEAD }, ~<<-FOOT
       <?xml version="1.0" encoding="UTF-8"?>
@@ -32,7 +31,7 @@ describe Maliq::Create do
             #title2
             EOS
           system 'touch', cssfile
-          create.new([mdfile], css:File.basename(cssfile)).run!
+          Maliq::Create.new([mdfile], css:File.basename(cssfile)).run!
           xhtml = "#{dir}/chap1.xhtml"
           File.exist?(xhtml).should be_true
           File.read(xhtml).should eql [@header.call('ja','Sample'), ~<<-EOS, @footer].join
@@ -58,7 +57,7 @@ describe Maliq::Create do
             #title2
             EOS
           system 'touch', cssfile
-          create.new([mdfile], css:File.basename(cssfile)).run!
+          Maliq::Create.new([mdfile], css:File.basename(cssfile)).run!
           xhtml1, xhtml2 = "#{dir}/chap1.xhtml", "#{dir}/chap2.xhtml"
           File.exist?(xhtml1).should be_true
           File.exist?(xhtml2).should be_true
@@ -68,6 +67,39 @@ describe Maliq::Create do
           File.read(xhtml2).should eql [@header.call('ja','Sample'), ~<<-EOS, @footer].join
             <h1>title2</h1>
           EOS
+        end
+      end
+    end
+
+    context "when nav option is true" do
+      it "also create nav.xhtml" do
+        Dir.mktmpdir do |dir|
+          mdfile = "#{dir}/chap1.md"
+          cssfile = "#{dir}/style.css"
+          File.write(mdfile, ~<<-EOS)
+            ---
+            title: 'Sample'
+            ---
+            #title1
+            <<<------>>>
+            #title2
+            EOS
+          system 'touch', cssfile
+          Maliq::Create.new([mdfile], css:File.basename(cssfile), nav:true).run!
+          nav = "#{dir}/nav.xhtml"
+          File.exist?(nav).should be_true
+          File.read(nav).should eql [@header.call, ~<<-EOS, @footer].join
+            <h2>Table of Contents</h2>
+
+            <ol id='toc'>
+
+              <li><a href='chap1.xhtml'>title1</a></li>
+
+              <li><a href='chap2.xhtml'>title2</a></li>
+
+            </ol>
+
+            EOS
         end
       end
     end
