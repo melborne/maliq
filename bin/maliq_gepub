@@ -3,24 +3,6 @@
 require "maliq"
 require "trollop"
 require "gepub"
-require "stringio"
-
-# a patch for Nokogiri::XML::Node#namespaces
-# Hash[ alist ]  => Hash[ *alist.flatten ]
-class Nokogiri::XML::Node
-  def namespaces
-    Hash[*namespace_scopes.map { |nd|
-      key = ['xmlns', nd.prefix].compact.join(':')
-      if RUBY_VERSION >= '1.9' && document.encoding
-        begin
-          key.force_encoding document.encoding
-        rescue ArgumentError
-        end
-      end
-      [key, nd.href]
-    }.flatten]
-  end
-end
 
 class OptionParser
   class << self
