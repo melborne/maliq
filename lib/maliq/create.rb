@@ -63,14 +63,16 @@ class Maliq::Create
     toc = @nav.is_a?(String) ? @nav : "##Table of Contents"
 
     body = Maliq::Converter.new(~<<-EOS, @opts).run(:epub, 'list' => nav_list)
+    <nav epub:type="toc" id="toc">
     #{toc}
-
-    <ol id='toc'>
+    <ol class='toc'>
     {% for ch in list %}
       <li><a href='{{ ch[0] }}'>{{ ch[1] }}</a></li>
     {% endfor %}
     </ol>
+    </nav>
     EOS
+    body = body.gsub(/<p>(<nav.*?>)<\/p>/, '\1').gsub(/<p>(<\/nav>)<\/p>/, '\1')
     File.write(dest, body)
   end
 end

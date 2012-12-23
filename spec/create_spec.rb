@@ -89,9 +89,11 @@ describe Maliq::Create do
           nav = "#{dir}/nav.xhtml"
           File.exist?(nav).should be_true
           File.read(nav).should eql [@header.call, ~<<-EOS, @footer].join
+            <nav epub:type="toc" id="toc">
+
             <h2>Table of Contents</h2>
 
-            <ol id='toc'>
+            <ol class='toc'>
 
               <li><a href='chap1.xhtml'>title1</a></li>
 
@@ -99,6 +101,8 @@ describe Maliq::Create do
 
             </ol>
 
+
+            </nav>
             EOS
         end
       end
