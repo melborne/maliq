@@ -26,7 +26,7 @@ Follow the steps below:
 
 2. Write meta data required for EPUB in the head of the file with Yaml Front Matter(YFM) form(see below).
 
-3. You can obtain separated xhtml files each of which represents a chapter from a markdown file if needed. This achive by placing a special marker into target line of your content. The Default marker is `<<<--- <filename> --->>>`. (ex. `<<<--- chapter02 --->>>`)
+3. You can obtain separated xhtml files each of which represents a chapter from a markdown file if needed. This achive by placing a special marker into target line of your content. The Default marker is `<<<--- <filename> --->>>` (ex. `<<<--- chapter02 --->>>`). When filenames  are omitted, system generate sequential names automatically for them.
 
 4. Place css and image files into the directory or its sub directory if any.
 
