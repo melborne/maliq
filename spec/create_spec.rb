@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require_relative 'spec_helper'
 
 describe Maliq::Create do
@@ -91,7 +92,7 @@ describe Maliq::Create do
           File.read(nav).should eql [@header.call, ~<<-EOS, @footer].join
             <nav epub:type="toc" id="toc">
 
-            <h2>Table of Contents</h2>
+            <h2>目次</h2>
 
             <ol class='toc'>
 

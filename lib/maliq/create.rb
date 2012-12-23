@@ -1,3 +1,4 @@
+# encoding: UTF-8
 # Maliq::Create receive markdown filename(s)
 # and create xhtml file(s).
 class Maliq::Create
@@ -60,7 +61,7 @@ class Maliq::Create
       [fname.basename_with(:xhtml), header]
     end
 
-    toc = @nav.is_a?(String) ? @nav : "##Table of Contents"
+    toc = @nav.is_a?(String) ? @nav : "##目次"
 
     body = Maliq::Converter.new(~<<-EOS, @opts).run(:epub, 'list' => nav_list)
     <nav epub:type="toc" id="toc">
