@@ -126,7 +126,7 @@ class OptionParser
     end
 
     def pick_nav_file(xhtmls)
-      navs, xhtmls = xhtmls.partition { |fname| fname.match /^(nav|toc)\.xhtml$/ }
+      navs, xhtmls = xhtmls.partition { |fname| fname.match /^(nav|toc)\.x*html$/ }
       nav = navs.empty? ? nil : navs.first
       return nav, xhtmls
     end
