@@ -4,125 +4,125 @@ require "maliq"
 require "trollop"
 require "gepub"
 
-class OptionParser
-  class << self
-    def parse!
-      opts = build_opts
+class Maliq::Epub
+  def initialize(opts)
+    @opts = opts
+    @files = read_files
+    markdowns = @files.values_atx(:md, :markdown)
+    @metadata = read_metadata(markdowns.first)
+  end
+  
+  # Returns a Hash, in which filenames are grouped by extname.
+  def read_files
+    Dir['*', '*/*'].group_by { |f| f.ext || :_dir }.to_symkey
+  end
 
-      files = read_files
-      markdowns = files.values_atx(:md, :markdown)
-      metadata = read_metadata(markdowns.first)
-      generate(metadata, files, opts)
+  # Returns a Hash of metadata.
+  def read_metadata(path)
+    unless path
+      abort "Must exist a markdown filename which have Yaml Front Matter."
+    end
+    yml, _ = Maliq::FileUtils.retrieveYFM(File.read path)
+    return nil if yml.empty?
+    YAML.load(yml).to_symkey
+  end
+
+  def create
+    meta_nodes = GEPUB::Metadata::CONTENT_NODE_LIST + ["unique_identifier"]
+    metadata = @metadata.select { |k, _| meta_nodes.include? k.to_s }
+    csses  = @files.values_atx(:css)
+    images = @files.values_atx(:png, :jpg, :jpeg, :gif, :bmp, :tiff)
+    cover_images, images = images.partition { |f| File.basename(f, '.*').match /^cover/ }
+    xhtmls = @files.values_atx(:xhtml, :html)
+    cover_xhtml = xhtmls.delete('cover.xhtml')
+
+    # Create cover page if page not provided for a cover image.
+    if (cover = cover_images.first) && !cover_xhtml
+      cover_xhtml = create_cover_page(cover)
     end
 
-    def build_opts
-      Trollop::options do
-        version "Maliq #{Maliq::VERSION} (c) 2012 kyoendo"
-        banner ~<<-EOS
-          Maliq is a markdown, liquid converter for EPUB's xhtml.
+    navfile, xhtmls = pick_nav_file(xhtmls)
 
-          'maliq_gepub' command is a tool for generating a EPUB package
-          using Gepub gem.
+    heading_files = get_heading_files(navfile)
 
-          Usage:
+    xhtmls.map! { |f| xhtml_with_heading f }
 
-              1. Install gepub gem(gem install gepub)
+    GEPUB::Builder.new do
+      metadata.each { |k, v| send k, *Array(v) }
 
-              2. Set meta data required for Epub generation in Yaml Front
-                 Matter(YFM) of your markdown file.
+      resources(:workdir => '.') {
+        csses.each { |f| file f }
+        cover_image cover if cover
+        images.each { |f| file(f) }
+        ordered {
+          if cover_xhtml
+            file 'cover.xhtml' => cover_xhtml
+            heading 'Cover'
+          end
 
-              3. Create xhtml files with 'maliq' command(see maliq -h). 
+          nav navfile if navfile
 
-              4. fire up 'maliq_gepub' on the direcroty.
-
-          where [options] are:
-          EOS
-
-          opt :output, "Output Epub filename", :default => 'out.epub'
-          opt :toc, "Add Table of Contents page", :default => true
-      end
-    end
-
-    # Returns a Hash, in which filenames are grouped by extname.
-    def read_files
-      Dir['*', '*/*'].group_by { |f| f.ext || :_dir }.to_symkey
-    end
-
-    # Returns a Hash of metadata.
-    def read_metadata(path)
-      unless path
-        abort "Must exist a markdown filename which have Yaml Front Matter."
-      end
-      yml, _ = Maliq::FileUtils.retrieveYFM(File.read path)
-      return nil if yml.empty?
-      YAML.load(yml).to_symkey
-    end
-
-    def generate(metadata, files, opts)
-      meta_nodes = GEPUB::Metadata::CONTENT_NODE_LIST + ["unique_identifier"]
-      metadata.select! { |k, _| meta_nodes.include? k.to_s }
-      csses  = files.values_atx(:css)
-      images = files.values_atx(:png, :jpg, :jpeg, :gif, :bmp, :tiff)
-      cover_images, images = images.partition { |f| File.basename(f, '.*').match /^cover/ }
-      xhtmls = files.values_atx(:xhtml, :html)
-      cover_xhtml = xhtmls.delete('cover.xhtml')
-
-      # Create cover page if page not provided for a cover image.
-      if (cover = cover_images.first) && !cover_xhtml
-        cover_xhtml = create_cover_page(cover)
-      end
-
-      navfile, xhtmls = pick_nav_file(xhtmls)
-
-      heading_files = get_heading_files(navfile)
-
-      xhtmls.map! { |f| xhtml_with_heading f }
-
-      GEPUB::Builder.new do
-        metadata.each { |k, v| send k, *Array(v) }
-
-        resources(:workdir => '.') {
-          csses.each { |f| file f }
-          cover_image cover if cover
-          images.each { |f| file(f) }
-          ordered {
-            if cover_xhtml
-              file 'cover.xhtml' => cover_xhtml
-              heading 'Cover'
-            end
-
-            nav navfile if navfile
-
-            xhtmls.each do |fname, head|
-              file fname
-              heading head if !navfile || heading_files.include?(fname)
-            end
-          }
+          xhtmls.each do |fname, head|
+            file fname
+            heading head if !navfile || heading_files.include?(fname)
+          end
         }
-      end.generate_epub(opts[:output])
-    end
+      }
+    end.generate_epub(@opts[:output])
+  end
 
-    def create_cover_page(cover)
-      out = Maliq::Converter.new("![cover](#{cover})", title:'Cover').run
-      StringIO.new(out)
-    end
+  def create_cover_page(cover)
+    out = Maliq::Converter.new("![cover](#{cover})", title:'Cover').run
+    StringIO.new(out)
+  end
 
-    def pick_nav_file(xhtmls)
-      navs, xhtmls = xhtmls.partition { |fname| fname.match /^(nav|toc)\.x*html$/ }
-      nav = navs.empty? ? nil : navs.first
-      return nav, xhtmls
-    end
+  def pick_nav_file(xhtmls)
+    navs, xhtmls = xhtmls.partition { |fname| fname.match /^(nav|toc)\.x*html$/ }
+    nav = navs.empty? ? nil : navs.first
+    return nav, xhtmls
+  end
 
-    def get_heading_files(navfile)
-      File.read(navfile).scan(/\w+\.xhtml(?=.*?<\/li>)/) if navfile
-    end
+  def get_heading_files(navfile)
+    File.read(navfile).scan(/\w+\.xhtml(?=.*?<\/li>)/) if navfile
+  end
 
-    def xhtml_with_heading(xhtml)
-      heading = File.basename(xhtml, '.*').capitalize
-      File.read(xhtml).match(/<h(?:1|2|3)>(.*?)<\/h(?:1|2|3)>/) { heading = $1 }
-      [xhtml, heading]
+  def xhtml_with_heading(xhtml)
+    heading = File.basename(xhtml, '.*').capitalize
+    File.read(xhtml).match(/<h(?:1|2|3)>(.*?)<\/h(?:1|2|3)>/) { heading = $1 }
+    [xhtml, heading]
+  end
+end
+
+class OptionParser
+  def self.parse!
+    Trollop::options do
+      version "Maliq #{Maliq::VERSION} (c) 2012 kyoendo"
+      banner ~<<-EOS
+        Maliq is a markdown, liquid converter for EPUB's xhtml.
+
+        'maliq_gepub' command is a tool for generating a EPUB package
+        using Gepub gem.
+
+        Usage:
+
+            1. Install gepub gem(gem install gepub)
+
+            2. Set meta data required for Epub generation in Yaml Front
+               Matter(YFM) of your markdown file.
+
+            3. Create xhtml files with 'maliq' command(see maliq -h). 
+
+            4. fire up 'maliq_gepub' on the direcroty.
+
+        where [options] are:
+        EOS
+
+        opt :output, "Output Epub filename", :default => 'out.epub'
+        opt :toc, "Add Table of Contents page", :default => true
     end
   end
 end
 
-OptionParser.parse!
+opts = OptionParser.parse!
+
+Maliq::Epub.new(opts).create
