@@ -4,52 +4,29 @@ require "gepub"
 class Maliq::Epub
   def initialize(opts)
     @opts = opts
-    @files = read_files
-    markdowns = @files.values_atx(:md, :markdown)
-    @metadata = read_metadata(markdowns.first)
+    @output = @opts.delete(:output) || 'out.epub'
+    @path = opts[:path] || '.'
+    set_files_by_type(@path)
+    @metadata = read_metadata
   end
   
-  # Returns a Hash, in which filenames are grouped by extname.
-  def read_files
-    Dir['*', '*/*'].group_by { |f| f.ext || :_dir }.to_symkey
-  end
-
-  # Returns a Hash of metadata.
-  def read_metadata(path)
-    unless path
-      abort "Must exist a markdown filename which have Yaml Front Matter."
-    end
-    yml, _ = Maliq::FileUtils.retrieveYFM(File.read path)
-    return nil if yml.empty?
-    YAML.load(yml).to_symkey
-  end
-
   def create!
-    meta_nodes = GEPUB::Metadata::CONTENT_NODE_LIST + ["unique_identifier"]
-    metadata = @metadata.select { |k, _| meta_nodes.include? k.to_s }
-    csses  = @files.values_atx(:css)
-    images = @files.values_atx(:png, :jpg, :jpeg, :gif, :bmp, :tiff)
-    cover_images, images = images.partition { |f| File.basename(f, '.*').match /^cover/ }
-    xhtmls = @files.values_atx(:xhtml, :html)
-    cover_xhtml = xhtmls.delete('cover.xhtml')
-
-    # Create cover page if page not provided for a cover image.
-    if (cover = cover_images.first) && !cover_xhtml
-      cover_xhtml = create_cover_page(cover)
-    end
-
-    navfile, xhtmls = pick_nav_file(xhtmls)
-
-    heading_files = get_heading_files(navfile)
-
-    xhtmls.map! { |f| xhtml_with_heading f }
+    metadata = @metadata
+    csses  = @csses
+    cover_img = @cover_image
+    images = @images
+    cover_xhtml = @cover_xhtml
+    navfile = @navfile
+    heading_files = @heading_files
+    xhtmls = @xhtmls
+    path = @path
 
     GEPUB::Builder.new do
       metadata.each { |k, v| send k, *Array(v) }
 
-      resources(:workdir => '.') {
+      resources(:workdir => path) {
         csses.each { |f| file f }
-        cover_image cover if cover
+        cover_image cover_img if cover_img
         images.each { |f| file(f) }
         ordered {
           if cover_xhtml
@@ -65,7 +42,47 @@ class Maliq::Epub
           end
         }
       }
-    end.generate_epub(@opts[:output])
+    end.generate_epub(@output)
+  end
+
+  private
+  # Returns a Hash, in which filenames are grouped by extname.
+  def set_files_by_type(path)
+    files = Dir.chdir(path) { Dir["*", "*/*"].group_by { |f| f.ext || :_dir }.to_symkey }
+    @mds = files.values_atx(:md, :markdown)
+    xhtmls = files.values_atx(:xhtml, :html)
+    @csses = files.values_atx(:css)
+    images = files.values_atx(:png, :jpg, :jpeg, :gif, :bmp, :tiff)
+    (@cover_image, *_), @images =
+                images.partition { |f| File.basename(f, '.*').match /^cover/ }
+
+    @cover_xhtml =
+      if cover = xhtmls.delete('cover.xhtml')
+        cover
+      elsif @cover_image
+        # Create cover page if page not provided for a cover image.
+        create_cover_page(@cover_image)
+      end
+
+    @navfile, xhtmls = pick_nav_file(xhtmls)
+
+    @heading_files = get_heading_files(@navfile)
+
+    @xhtmls = xhtmls.map { |f| xhtml_with_heading f }
+  end
+
+  # Returns a Hash of metadata.
+  def read_metadata
+    path = @mds.first
+    unless path
+      abort "Must exist a markdown filename which have Yaml Front Matter."
+    end
+    yml, _ = Maliq::FileUtils.retrieveYFM(File.read path)
+    return nil if yml.empty?
+    metadata = YAML.load(yml).to_symkey
+
+    meta_nodes = GEPUB::Metadata::CONTENT_NODE_LIST + ["unique_identifier"]
+    metadata.select { |k, _| meta_nodes.include? k.to_s }
   end
 
   def create_cover_page(cover)
@@ -74,8 +91,7 @@ class Maliq::Epub
   end
 
   def pick_nav_file(xhtmls)
-    navs, xhtmls = xhtmls.partition { |fname| fname.match /^(nav|toc)\.x*html$/ }
-    nav = navs.empty? ? nil : navs.first
+    (nav, *_), xhtmls = xhtmls.partition { |fname| fname.match /^(nav|toc)\.x*html$/ }
     return nav, xhtmls
   end
 
