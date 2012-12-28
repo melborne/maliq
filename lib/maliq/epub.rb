@@ -11,6 +11,8 @@ class Maliq::Epub
   end
   
   def create!
+    # Instance variables need to be locals, because a block of,
+    # GEPUB::Builder.new changes its context with instance_eval.
     metadata = @metadata
     csses  = @csses
     cover_img = @cover_image
