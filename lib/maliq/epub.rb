@@ -22,7 +22,7 @@ class Maliq::Epub
     path = @path
 
     GEPUB::Builder.new do
-      metadata.each { |k, v| send k, *Array(v) }
+      metadata.each { |k, *v| send k, *v }
 
       resources(:workdir => path) {
         csses.each { |f| file f }
