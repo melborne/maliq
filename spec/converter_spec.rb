@@ -71,7 +71,7 @@ describe Maliq::Converter do
     context "with Liquid plugins" do
       subject { converter.new(~<<-EOS).run }
         ---
-        liquid: 'spec/plugins'
+        liquid: 'spec/fixtures'
         ---
         # header1
         {% calc 2 + 3 %}
