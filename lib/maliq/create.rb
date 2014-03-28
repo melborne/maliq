@@ -6,6 +6,7 @@ class Maliq::Create
     @opts = opts
     @nav = opts.delete(:toc) || opts.delete(:nav)
     @mdfiles = get_markdown_files(files)
+    @target_dir = opts.delete(:dir)
   end
 
   def get_markdown_files(files)
@@ -23,7 +24,7 @@ class Maliq::Create
     dirname = nil
     nav_list = []
     @mdfiles.each_with_index do |filename, fno|
-      dirname = File.dirname(filename)
+      dirname = @target_dir || File.dirname(filename)
       if @opts[:seq] && lastname
         seq_fname = Maliq::FileUtils.create_filename(lastname)
       end

@@ -24,6 +24,8 @@ class Maliq::Converter
 
   def save(path="out.xhtml")
     @converted ||= run
+    dir = File.dirname(path)
+    FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
     File.write(path, @converted)
   end
 
