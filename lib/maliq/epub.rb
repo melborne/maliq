@@ -98,12 +98,14 @@ class Maliq::Epub
   end
 
   def get_heading_files(navfile)
-    File.read(navfile).scan(/\w+\.xhtml(?=.*?<\/li>)/) if navfile
+    path = File.join(@path, navfile)
+    File.read(path).scan(/\w+\.xhtml(?=.*?<\/li>)/) if navfile
   end
 
   def xhtml_with_heading(xhtml)
+    path = File.join(@path, xhtml)
     heading = File.basename(xhtml, '.*').capitalize
-    File.read(xhtml).match(/<h(?:1|2|3)>(.*?)<\/h(?:1|2|3)>/) { heading = $1 }
+    File.read(path).match(/<h(?:1|2|3)>(.*?)<\/h(?:1|2|3)>/) { heading = $1 }
     [xhtml, heading]
   end
 end
