@@ -6,15 +6,23 @@ class Maliq::Command < Thor
   option :liquid, aliases:"-l", desc:"Liquid plugin path", type: :string
   option :seq, aliases:"-s", desc:"Build consecutive filenames", :default => true
   option :nav, aliases:"-n", desc:"Create nav.xhtml(TOC)", :default => true
-  option :toc, aliases:"-t", desc:"Set title for TOC", :default => nil
-  option :dir, aliases:"-d", desc:"Output directory", :default => nil
+  option :toc, aliases:"-t", desc:"Set title for TOC"
+  option :epub, aliases:"-e", desc:"Create a Epub file", :default => true
+  option :epub_path, desc:"Epub file path"
+  # option :toc, "Add Table of Contents page", :default => true
   def build(files)
     opts = symbolize_keys(options)
     css = Dir['*.css', '*/*.css']
     opts.update(css: css)
+    epub = opts.delete(:epub)
+    epub_path = opts.delete(:epub_path)
     Maliq::Create.new(files, opts).run!
-  rescue
-    abort "Any of #{files.join(', ')} not found"
+
+    if epub
+      Maliq::Epub.new(output:epub_path).create!
+    end
+  rescue => e
+    abort "something go wrong: #{e.message}"
   end
 
   desc "version", "Show Maliq version"
