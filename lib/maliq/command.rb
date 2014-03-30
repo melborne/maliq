@@ -10,7 +10,7 @@ class Maliq::Command < Thor
   option :epub, aliases:"-e", desc:"Create a Epub file", :default => true
   option :epub_path, desc:"Epub file path"
   # option :toc, "Add Table of Contents page", :default => true
-  def build(files)
+  def build(*files)
     opts = symbolize_keys(options)
     css = Dir['*.css', '*/*.css']
     opts.update(css: css)
@@ -22,7 +22,7 @@ class Maliq::Command < Thor
       Maliq::Epub.new(output:epub_path).create!
     end
   rescue => e
-    abort "something go wrong: #{e.message}"
+    abort "something go wrong: #{e}"
   end
 
   desc "version", "Show Maliq version"
