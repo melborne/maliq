@@ -2,7 +2,7 @@ require "thor"
 
 class Maliq::Command < Thor
 	
-	desc "build [FILES]", "Build a epub file based on markdown or xhtml file(s)"
+	desc "build [FILES]", "Build a epub package from markdown file(s)"
   option :liquid, aliases:"-l", desc:"Liquid plugin path", type: :string
   option :seq, aliases:"-s", desc:"Build consecutive filenames", :default => true
   option :nav, aliases:"-n", desc:"Create nav.xhtml(TOC)", :default => true
@@ -44,18 +44,18 @@ class Maliq::Command < Thor
     Prerequisite:
 
       1. Set title and language in Yaml Front Matter(YFM) of
-      	 your markdown file, which will be used in the header
-      	 of generating xhtml.
+         your markdown file, which will be used in the header
+         of generating xhtml.
 
       2. To parse liquid tags in your markdown, place the plugins
-      	 into the sub directory named 'plugins'.
+         into the sub directory named 'plugins'.
 
       3. Place css files into the target directory or its 
-      	 sub-directory if any.
+         sub-directory if any.
 
       4. To split your markdown into several xhtmls for building
-      	 chapters, set special markers "<<<--- <filename> --->>>"
-      	 into the right places. ex. <<<--- chapter02 --->>>
+         chapters, set special markers "<<<--- <filename> --->>>"
+         into the right places. ex. <<<--- chapter02 --->>>
 
 
     Usage:
