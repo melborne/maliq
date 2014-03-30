@@ -34,30 +34,30 @@ class Maliq::Command < Thor
   desc "banner", "Describe Maliq usage", hide:true
   def banner
     banner = ~<<-EOS
-		Maliq is a markdown, liquid converter for EPUB's xhtml.
+    Maliq is a markdown, liquid converter for EPUB's xhtml.
 
-		Prerequisite:
+    Prerequisite:
 
-				1. Set title and language in Yaml Front Matter(YFM) of
-					 your markdown file, which will be used in the header
-					 of generating xhtml.
+      1. Set title and language in Yaml Front Matter(YFM) of
+      	 your markdown file, which will be used in the header
+      	 of generating xhtml.
 
-				2. To parse liquid tags in your markdown, place the plugins
-					 into the sub directory named 'plugins'.
+      2. To parse liquid tags in your markdown, place the plugins
+      	 into the sub directory named 'plugins'.
 
-				3. Place css files into the target directory or its 
-					 sub-directory if any.
+      3. Place css files into the target directory or its 
+      	 sub-directory if any.
 
-				4. To split your markdown into several xhtmls for building
-					 chapters, set special markers "<<<--- <filename> --->>>"
-					 into the right places. ex. <<<--- chapter02 --->>>
+      4. To split your markdown into several xhtmls for building
+      	 chapters, set special markers "<<<--- <filename> --->>>"
+      	 into the right places. ex. <<<--- chapter02 --->>>
 
 
-		Usage:
+    Usage:
 
-					maliq build [options] <filenames>
+      maliq build [options] <filenames>
 
-					ex. maliq build chapter01.md
+      ex. maliq build chapter01.md
 
     EOS
     puts banner
