@@ -7,6 +7,7 @@ class Maliq::Command < Thor
   option :seq, aliases:"-s", desc:"Build consecutive filenames", :default => true
   option :nav, aliases:"-n", desc:"Create nav.xhtml(TOC)", :default => true
   option :toc, aliases:"-t", desc:"Set title for TOC"
+  option :xhtml, aliases:"-x", desc:"Create xhtml files", :default => true
   option :epub, aliases:"-e", desc:"Create a Epub file", :default => true
   option :epub_path, desc:"Epub file path"
   # option :toc, "Add Table of Contents page", :default => true
@@ -14,9 +15,13 @@ class Maliq::Command < Thor
     opts = symbolize_keys(options)
     css = Dir['*.css', '*/*.css']
     opts.update(css: css)
+    xhtml = opts.delete(:xhtml)
     epub = opts.delete(:epub)
     epub_path = opts.delete(:epub_path)
-    Maliq::Create.new(files, opts).run!
+
+    if xhtml
+      Maliq::Create.new(files, opts).run!
+    end
 
     if epub
       Maliq::Epub.new(output:epub_path).create!
