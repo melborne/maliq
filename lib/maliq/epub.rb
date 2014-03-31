@@ -70,7 +70,7 @@ class Maliq::Epub
 
     @heading_files = get_heading_files(@navfile)
 
-    @xhtmls = xhtmls.map { |f| xhtml_with_heading f }.sort_by(&:frist)
+    @xhtmls = xhtmls.map { |f| xhtml_with_heading f }.sort_by(&:first)
   end
 
   # Returns a Hash of metadata.
